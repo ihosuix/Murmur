@@ -31,7 +31,7 @@ export async function signUp(name, email, password) {
 
 export async function signIn(email, password) {
   const result = await signInWithEmailAndPassword(auth, email, password)
-  await syncProfile(result.user)
+  syncProfile(result.user).catch(e => console.error('profile sync failed:', e))
   return result.user
 }
 

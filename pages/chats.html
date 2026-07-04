@@ -112,6 +112,7 @@
         findUserByEmail,
         getOrCreateChat,
         listenUserChats,
+        saveUserProfile,
       } from "/src/db.js";
 
       const colors = [
@@ -163,12 +164,15 @@
 
       onAuthChange((user) => {
         if (!user) {
-          window.location.href = "../index.html";
+          window.location.href = "/index.html";
           return;
         }
         currentUser = user;
         document.getElementById("avatar-letter").textContent =
           (user.displayName || "?")[0].toUpperCase();
+        saveUserProfile(user.uid, user.displayName || "", user.email).catch(
+          (e) => console.error("profile auto-save failed:", e)
+        );
         loadChats();
       });
 
@@ -259,7 +263,7 @@
         try {
           const otherUser = await findUserByEmail(email);
           if (!otherUser) {
-            errEl.textContent = "User not found.";
+            errEl.textContent = "User not found. Make sure they have signed up and opened the app at least once.";
             errEl.classList.remove("hidden");
             return;
           }
@@ -273,8 +277,8 @@
             "&uid=" +
             otherUser.id;
         } catch (e) {
-          console.error(e);
-          errEl.textContent = "Something went wrong.";
+          console.error("findUserByEmail error:", e);
+          errEl.textContent = "Error: " + (e.message || "Check console for details.");
           errEl.classList.remove("hidden");
         }
       };
