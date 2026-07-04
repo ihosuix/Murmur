@@ -15,11 +15,11 @@ async function syncProfile(user) {
       console.log('profile synced:', user.email)
       return
     } catch(e) {
-      console.log(`sync retry ${i + 1}...`)
-      await new Promise(r => setTimeout(r, 2000))
+      console.log(`sync retry ${i + 1}...`, e)
+      if (i < 4) await new Promise(r => setTimeout(r, 2000))
     }
   }
-  console.error('could not sync profile')
+  throw new Error('Could not save profile. Please check your connection and try again.')
 }
 
 export async function signUp(name, email, password) {
@@ -31,6 +31,7 @@ export async function signUp(name, email, password) {
 
 export async function signIn(email, password) {
   const result = await signInWithEmailAndPassword(auth, email, password)
+  await syncProfile(result.user)
   return result.user
 }
 
