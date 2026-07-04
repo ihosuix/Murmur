@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Murmur — Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    #messages { scroll-behavior: smooth; }
+  </style>
+  <script type="module" crossorigin src="/assets/chat-DZewleZu.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-B1AjK29O.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-DW89CVhM.css">
+</head>
+<body class="bg-white min-h-screen max-w-sm mx-auto flex flex-col">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 px-4 pt-14 pb-4 border-b border-gray-50">
+    <button onclick="history.back()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <div class="relative">
+      <div id="other-avatar" class="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center">
+        <span id="other-letter" class="text-rose-500 text-sm font-medium">?</span>
+      </div>
+    </div>
+    <div class="flex-1">
+      <p id="other-name" class="text-sm font-medium text-gray-900">...</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="messages" class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+    <div class="flex items-center justify-center py-8">
+      <p class="text-sm text-gray-400">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="px-4 pb-8 pt-3 border-t border-gray-50">
+    <div class="flex items-center gap-2">
+      <div class="flex-1 flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3">
+        <input
+          id="message-input"
+          type="text"
+          placeholder="Message"
+          class="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
+          onkeydown="handleKey(event)"
+          oninput="toggleSend()"
+        />
+      </div>
+      <button
+        id="send-btn"
+        onclick="sendMsg()"
+        class="w-11 h-11 bg-gray-900 rounded-2xl flex items-center justify-center hover:bg-gray-700 active:scale-95 transition-all opacity-40"
+        disabled
+      >
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+
+</body>
+</html>

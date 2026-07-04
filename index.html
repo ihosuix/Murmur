@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Murmur</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Inter", sans-serif;
+      }
+      .tab-active {
+        color: #111;
+        border-bottom: 2px solid #111;
+      }
+      .tab-inactive {
+        color: #9ca3af;
+        border-bottom: 2px solid transparent;
+      }
+      input:focus {
+        outline: none;
+        border-color: #111;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/main-_IYZb6Ne.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/auth-B1AjK29O.js">
+    <link rel="stylesheet" crossorigin href="/assets/auth-DW89CVhM.css">
+  </head>
+  <body class="bg-white min-h-screen flex items-center justify-center px-6">
+    <div class="w-full max-w-sm">
+      <!-- Logo -->
+      <div class="mb-10 text-center">
+        <h1 class="text-2xl font-semibold tracking-tight text-gray-900">
+          murmur
+        </h1>
+        <p class="text-sm text-gray-400 mt-1">quiet conversations</p>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        id="error-msg"
+        class="hidden mb-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl"
+      >
+        <p class="text-xs text-red-500" id="error-text"></p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-gray-100 mb-8">
+        <button
+          id="tab-signin"
+          onclick="switchTab('signin')"
+          class="tab-active flex-1 pb-3 text-sm font-medium transition-all"
+        >
+          Sign in
+        </button>
+        <button
+          id="tab-signup"
+          onclick="switchTab('signup')"
+          class="tab-inactive flex-1 pb-3 text-sm font-medium transition-all"
+        >
+          Create account
+        </button>
+      </div>
+
+      <!-- Sign In Form -->
+      <form id="form-signin" class="space-y-4" onsubmit="handleSignIn(event)">
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5">Email</label>
+          <input
+            id="signin-email"
+            type="email"
+            placeholder="you@example.com"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 transition-all"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5">Password</label>
+          <input
+            id="signin-password"
+            type="password"
+            placeholder="••••••••"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 transition-all"
+            required
+          />
+        </div>
+        <div class="pt-1">
+          <button
+            type="submit"
+            id="signin-btn"
+            class="w-full bg-gray-900 text-white text-sm font-medium rounded-xl py-3 hover:bg-gray-700 active:scale-95 transition-all"
+          >
+            Sign in
+          </button>
+        </div>
+        <p class="text-center text-xs text-gray-400 pt-1">
+          Forgot your password?
+          <a href="#" class="text-gray-600 underline underline-offset-2"
+            >Reset it</a
+          >
+        </p>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form
+        id="form-signup"
+        class="space-y-4 hidden"
+        onsubmit="handleSignUp(event)"
+      >
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5">Name</label>
+          <input
+            id="signup-name"
+            type="text"
+            placeholder="Your name"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 transition-all"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5">Email</label>
+          <input
+            id="signup-email"
+            type="email"
+            placeholder="you@example.com"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 transition-all"
+            required
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-500 mb-1.5">Password</label>
+          <input
+            id="signup-password"
+            type="password"
+            placeholder="At least 8 characters"
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-300 transition-all"
+            required
+            minlength="8"
+          />
+        </div>
+        <div class="pt-1">
+          <button
+            type="submit"
+            id="signup-btn"
+            class="w-full bg-gray-900 text-white text-sm font-medium rounded-xl py-3 hover:bg-gray-700 active:scale-95 transition-all"
+          >
+            Create account
+          </button>
+        </div>
+        <p class="text-center text-xs text-gray-400 pt-1">
+          By signing up you agree to our
+          <a href="#" class="text-gray-600 underline underline-offset-2"
+            >terms</a
+          >
+        </p>
+      </form>
+    </div>
+
+  </body>
+</html>
