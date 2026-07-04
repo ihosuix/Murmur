@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Murmur — Chats</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Inter", sans-serif;
+      }
+      .chat-item:active {
+        background-color: #f9fafb;
+      }
+    </style>
+  </head>
+  <body class="bg-white min-h-screen max-w-sm mx-auto flex flex-col">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 pt-14 pb-4">
+      <h1 class="text-xl font-semibold text-gray-900">Messages</h1>
+      <button
+        onclick="goToProfile()"
+        class="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center"
+      >
+        <span id="avatar-letter" class="text-white text-xs font-medium">?</span>
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="px-5 mb-4">
+      <div class="flex items-center gap-3 bg-gray-50 rounded-2xl px-4 py-3">
+        <svg
+          class="w-4 h-4 text-gray-400 shrink-0"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.35-4.35" />
+        </svg>
+        <input
+          id="search-input"
+          type="text"
+          placeholder="Search"
+          oninput="filterChats()"
+          class="bg-transparent text-sm text-gray-700 placeholder-gray-400 w-full focus:outline-none"
+        />
+      </div>
+    </div>
+
+    <!-- Chat List -->
+    <div id="chat-list" class="flex-1 overflow-y-auto divide-y divide-gray-50">
+      <div class="flex items-center justify-center py-16">
+        <p class="text-sm text-gray-400">Loading...</p>
+      </div>
+    </div>
+
+    <!-- New Chat Button -->
+    <div class="px-5 pb-8 pt-4">
+      <button
+        onclick="openNewChat()"
+        class="w-full bg-gray-900 text-white text-sm font-medium rounded-2xl py-3.5 hover:bg-gray-700 active:scale-95 transition-all"
+      >
+        New conversation
+      </button>
+    </div>
+
+    <!-- New Chat Modal -->
+    <div
+      id="new-chat-modal"
+      class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-end justify-center z-50"
+    >
+      <div class="bg-white w-full max-w-sm rounded-t-3xl px-5 pt-6 pb-10">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-base font-semibold text-gray-900">
+            New conversation
+          </h3>
+          <button
+            onclick="closeNewChat()"
+            class="text-sm text-gray-400 hover:text-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
+        <input
+          id="email-input"
+          type="email"
+          placeholder="Enter email address"
+          class="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-all"
+        />
+        <p id="search-error" class="hidden text-xs text-red-400 mt-2 px-1">
+          User not found.
+        </p>
+        <button
+          onclick="startChat()"
+          class="mt-4 w-full bg-gray-900 text-white text-sm font-medium rounded-2xl py-3.5 hover:bg-gray-700 active:scale-95 transition-all"
+        >
+          Start conversation
+        </button>
+      </div>
+    </div>
+
+    <script type="module">
+      import { onAuthChange } from "/src/auth.js";
+      import {
+        findUserByEmail,
+        getOrCreateChat,
+        listenUserChats,
+      } from "/src/db.js";
+
+      const colors = [
+        "bg-rose-100 text-rose-500",
+        "bg-blue-100 text-blue-500",
+        "bg-violet-100 text-violet-500",
+        "bg-amber-100 text-amber-500",
+        "bg-teal-100 text-teal-500",
+        "bg-green-100 text-green-500",
+      ];
+
+      function getColor(str) {
+        let hash = 0;
+        for (let c of str) hash = c.charCodeAt(0) + ((hash << 5) - hash);
+        return colors[Math.abs(hash) % colors.length];
+      }
+
+      function timeAgo(timestamp) {
+        if (!timestamp) return "";
+        const date = timestamp.toDate
+          ? timestamp.toDate()
+          : new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        const mins = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        if (mins < 1) return "now";
+        if (mins < 60) return mins + "m";
+        if (hours < 24)
+          return date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        if (hours < 48) return "Yesterday";
+        return date.toLocaleDateString("en-US", { weekday: "short" });
+      }
+
+      let currentUser = null;
+      let allChats = [];
+      let cleanupChats = null;
+
+      window.goToProfile = () => {
+        window.location.href = "profile.html";
+      };
+
+      window.addEventListener("beforeunload", () => {
+        if (cleanupChats) cleanupChats();
+      });
+
+      onAuthChange((user) => {
+        if (!user) {
+          window.location.href = "/index.html";
+          return;
+        }
+        currentUser = user;
+        document.getElementById("avatar-letter").textContent =
+          (user.displayName || "?")[0].toUpperCase();
+        loadChats();
+      });
+
+      function loadChats() {
+        if (cleanupChats) cleanupChats();
+        cleanupChats = listenUserChats(currentUser.uid, (chats) => {
+          allChats = chats;
+          renderChats(chats);
+        });
+      }
+
+      function renderChats(chats) {
+        const list = document.getElementById("chat-list");
+        if (chats.length === 0) {
+          list.innerHTML =
+            '<div class="flex flex-col items-center justify-center py-16 gap-2"><p class="text-sm text-gray-400">No conversations yet</p><p class="text-xs text-gray-300">Start one below</p></div>';
+          return;
+        }
+        list.innerHTML = chats
+          .map((chat) => {
+            const other = chat.otherUser;
+            const color = getColor(other && other.name ? other.name : "x");
+            const parts = color.split(" ");
+            const bg = parts[0];
+            const text = parts[1];
+            const name = other && other.name ? other.name : "Unknown";
+            const letter = name[0].toUpperCase();
+            const uid = other && other.uid ? other.uid : "";
+            const lastMsg = chat.lastMessage || "No messages yet";
+            const time = timeAgo(chat.lastMessageAt);
+            return (
+              '<a href="chat.html?id=' +
+              chat.id +
+              "&name=" +
+              encodeURIComponent(name) +
+              "&uid=" +
+              uid +
+              '" class="chat-item flex items-center gap-4 px-5 py-4 transition-colors cursor-pointer"><div class="relative shrink-0"><div class="w-12 h-12 rounded-full ' +
+              bg +
+              ' flex items-center justify-center"><span class="' +
+              text +
+              ' text-sm font-medium">' +
+              letter +
+              '</span></div></div><div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-0.5"><span class="text-sm font-medium text-gray-900">' +
+              name +
+              '</span><span class="text-xs text-gray-400">' +
+              time +
+              '</span></div><div class="flex items-center justify-between"><p class="text-sm text-gray-500 truncate">' +
+              lastMsg +
+              "</p></div></div></a>"
+            );
+          })
+          .join("");
+      }
+
+      window.filterChats = () => {
+        const q = document.getElementById("search-input").value.toLowerCase();
+        const filtered = allChats.filter(
+          (c) =>
+            c.otherUser &&
+            c.otherUser.name &&
+            c.otherUser.name.toLowerCase().includes(q),
+        );
+        renderChats(filtered);
+      };
+
+      window.openNewChat = () => {
+        document.getElementById("new-chat-modal").classList.remove("hidden");
+        document.getElementById("search-error").classList.add("hidden");
+        document.getElementById("email-input").value = "";
+        setTimeout(() => document.getElementById("email-input").focus(), 100);
+      };
+
+      window.closeNewChat = () => {
+        document.getElementById("new-chat-modal").classList.add("hidden");
+      };
+
+      window.startChat = async () => {
+        const email = document.getElementById("email-input").value.trim();
+        if (!email) return;
+        const errEl = document.getElementById("search-error");
+        errEl.classList.add("hidden");
+        if (email === currentUser.email) {
+          errEl.textContent = "That's your own email!";
+          errEl.classList.remove("hidden");
+          return;
+        }
+        try {
+          const otherUser = await findUserByEmail(email);
+          if (!otherUser) {
+            errEl.textContent = "User not found.";
+            errEl.classList.remove("hidden");
+            return;
+          }
+          const chatId = await getOrCreateChat(currentUser.uid, otherUser.id);
+          window.closeNewChat();
+          window.location.href =
+            "chat.html?id=" +
+            chatId +
+            "&name=" +
+            encodeURIComponent(otherUser.name) +
+            "&uid=" +
+            otherUser.id;
+        } catch (e) {
+          console.error(e);
+          errEl.textContent = "Something went wrong.";
+          errEl.classList.remove("hidden");
+        }
+      };
+    </script>
+  </body>
+</html>

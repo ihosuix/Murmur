@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Murmur — Profile</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: "Inter", sans-serif; }
+    </style>
+  </head>
+  <body class="bg-white min-h-screen max-w-sm mx-auto flex flex-col">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 px-4 pt-14 pb-4">
+      <button onclick="history.back()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+      </button>
+      <h1 class="text-lg font-semibold text-gray-900">Profile</h1>
+    </div>
+
+    <!-- Avatar -->
+    <div class="flex flex-col items-center pt-4 pb-8 px-5">
+      <div class="relative mb-4">
+        <div class="w-24 h-24 rounded-full bg-gray-900 flex items-center justify-center">
+          <span id="avatar-letter" class="text-white text-3xl font-medium">?</span>
+        </div>
+        <button class="absolute bottom-0 right-0 w-8 h-8 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors">
+          <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+            <circle cx="12" cy="13" r="4" />
+          </svg>
+        </button>
+      </div>
+      <h2 id="user-name" class="text-lg font-semibold text-gray-900">...</h2>
+      <p id="user-email" class="text-sm text-gray-400 mt-0.5">...</p>
+    </div>
+
+    <!-- Info Fields -->
+    <div class="px-5 space-y-3 mb-6">
+      <p class="text-xs text-gray-400 uppercase tracking-wider font-medium px-1">Account</p>
+      <div class="border border-gray-100 rounded-2xl divide-y divide-gray-50">
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div>
+            <p class="text-xs text-gray-400 mb-0.5">Name</p>
+            <p id="field-name" class="text-sm text-gray-900">...</p>
+          </div>
+          <button onclick="openEdit('name')" class="text-xs text-gray-400 hover:text-gray-700 transition-colors">Edit</button>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div>
+            <p class="text-xs text-gray-400 mb-0.5">Email</p>
+            <p id="field-email" class="text-sm text-gray-900">...</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div>
+            <p class="text-xs text-gray-400 mb-0.5">Bio</p>
+            <p class="text-sm text-gray-500">Add a bio...</p>
+          </div>
+          <button onclick="openEdit('bio')" class="text-xs text-gray-400 hover:text-gray-700 transition-colors">Edit</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="px-5 space-y-3 mb-6">
+      <p class="text-xs text-gray-400 uppercase tracking-wider font-medium px-1">Settings</p>
+      <div class="border border-gray-100 rounded-2xl divide-y divide-gray-50">
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-gray-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
+              </svg>
+            </div>
+            <span class="text-sm text-gray-800">Notifications</span>
+          </div>
+          <button id="notif-toggle" onclick="toggleSwitch('notif-toggle')" class="w-11 h-6 bg-gray-900 rounded-full relative transition-colors">
+            <span class="absolute top-1 right-1 w-4 h-4 bg-white rounded-full transition-all"></span>
+          </button>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-gray-50 rounded-xl flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            </div>
+            <span class="text-sm text-gray-800">Dark mode</span>
+          </div>
+          <button id="dark-toggle" onclick="toggleSwitch('dark-toggle')" class="w-11 h-6 bg-gray-200 rounded-full relative transition-colors">
+            <span class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sign Out -->
+    <div class="px-5 pb-10">
+      <button onclick="handleSignOut()" class="w-full border border-gray-100 text-gray-500 text-sm font-medium rounded-2xl py-3.5 hover:bg-gray-50 active:scale-95 transition-all">
+        Sign out
+      </button>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-end justify-center z-50">
+      <div class="bg-white w-full max-w-sm rounded-t-3xl px-5 pt-6 pb-10">
+        <div class="flex items-center justify-between mb-6">
+          <h3 id="modal-title" class="text-base font-semibold text-gray-900">Edit name</h3>
+          <button onclick="closeEdit()" class="text-sm text-gray-400 hover:text-gray-700">Cancel</button>
+        </div>
+        <input id="modal-input" type="text" class="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-all" />
+        <button onclick="saveEdit()" class="mt-4 w-full bg-gray-900 text-white text-sm font-medium rounded-2xl py-3.5 hover:bg-gray-700 active:scale-95 transition-all">Save</button>
+      </div>
+    </div>
+
+    <script>
+      function toggleSwitch(id) {
+        const btn = document.getElementById(id)
+        const isOn = btn.classList.contains('bg-gray-900')
+        const dot = btn.querySelector('span')
+        if (isOn) {
+          btn.classList.replace('bg-gray-900', 'bg-gray-200')
+          dot.style.transform = 'translateX(0)'
+        } else {
+          btn.classList.replace('bg-gray-200', 'bg-gray-900')
+          dot.style.transform = 'translateX(20px)'
+        }
+      }
+      document.querySelector('#notif-toggle span').style.transform = 'translateX(20px)'
+    </script>
+
+<script type="module">
+  import { onAuthChange, logOut } from '../src/auth.js'
+  import { saveUserProfile } from '../src/db.js'
+  import { updateProfile } from 'firebase/auth'
+
+  let currentUser = null
+
+  onAuthChange((user) => {
+    if (!user) {
+      window.location.href = '/index.html'
+      return
+    }
+    currentUser = user
+
+    const name = user.displayName || 'User'
+    const email = user.email || ''
+    document.getElementById('avatar-letter').textContent = name[0].toUpperCase()
+    document.getElementById('user-name').textContent = name
+    document.getElementById('user-email').textContent = email
+    document.getElementById('field-name').textContent = name
+    document.getElementById('field-email').textContent = email
+  })
+
+  window.handleSignOut = async () => {
+    await logOut()
+    window.location.href = '../index.html'
+  }
+
+  let currentField = ''
+  window.openEdit = (field) => {
+    currentField = field
+    const titles = { name: 'Edit name', bio: 'Edit bio' }
+    document.getElementById('modal-title').textContent = titles[field]
+    document.getElementById('modal-input').value =
+      field === 'name' ? (currentUser?.displayName || '') : ''
+    document.getElementById('edit-modal').classList.remove('hidden')
+    setTimeout(() => document.getElementById('modal-input').focus(), 100)
+  }
+
+  window.closeEdit = () => {
+    document.getElementById('edit-modal').classList.add('hidden')
+  }
+
+  window.saveEdit = async () => {
+    const value = document.getElementById('modal-input').value.trim()
+    if (!value || !currentUser) return
+    try {
+      if (currentField === 'name') {
+        await updateProfile(currentUser, { displayName: value })
+        await saveUserProfile(currentUser.uid, value, currentUser.email)
+        document.getElementById('user-name').textContent = value
+        document.getElementById('field-name').textContent = value
+        document.getElementById('avatar-letter').textContent = value[0].toUpperCase()
+      } else if (currentField === 'bio') {
+        await saveUserProfile(currentUser.uid, currentUser.displayName || '', currentUser.email)
+      }
+      window.closeEdit()
+    } catch (e) {
+      console.error('saveEdit error:', e)
+    }
+  }
+</script>
+
+  </body>
+</html>

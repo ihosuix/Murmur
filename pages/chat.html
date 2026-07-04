@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Murmur — Chat</title>
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    #messages { scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="bg-white min-h-screen max-w-sm mx-auto flex flex-col">
+
+  <!-- Header -->
+  <div class="flex items-center gap-3 px-4 pt-14 pb-4 border-b border-gray-50">
+    <button onclick="history.back()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+      <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <div class="relative">
+      <div id="other-avatar" class="w-9 h-9 rounded-full bg-rose-100 flex items-center justify-center">
+        <span id="other-letter" class="text-rose-500 text-sm font-medium">?</span>
+      </div>
+    </div>
+    <div class="flex-1">
+      <p id="other-name" class="text-sm font-medium text-gray-900">...</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="messages" class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+    <div class="flex items-center justify-center py-8">
+      <p class="text-sm text-gray-400">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="px-4 pb-8 pt-3 border-t border-gray-50">
+    <div class="flex items-center gap-2">
+      <div class="flex-1 flex items-center gap-2 bg-gray-50 rounded-2xl px-4 py-3">
+        <input
+          id="message-input"
+          type="text"
+          placeholder="Message"
+          class="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none"
+          onkeydown="handleKey(event)"
+          oninput="toggleSend()"
+        />
+      </div>
+      <button
+        id="send-btn"
+        onclick="sendMsg()"
+        class="w-11 h-11 bg-gray-900 rounded-2xl flex items-center justify-center hover:bg-gray-700 active:scale-95 transition-all opacity-40"
+        disabled
+      >
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { onAuthChange } from '/src/auth.js'
+    import { sendMessage, listenMessages } from '../src/db.js'
+
+    const params = new URLSearchParams(window.location.search)
+    const chatId = params.get('id')
+    const otherName = params.get('name') || 'Unknown'
+
+    // set header
+    document.getElementById('other-name').textContent = otherName
+    document.getElementById('other-letter').textContent = otherName[0]?.toUpperCase() || '?'
+
+    let currentUser = null
+    let cleanupMessages = null
+
+    window.addEventListener("beforeunload", () => {
+      if (cleanupMessages) cleanupMessages();
+    });
+
+    onAuthChange((user) => {
+      if (!user) return window.location.href = '../index.html'
+      currentUser = user
+      startListening()
+    })
+
+    function startListening() {
+      if (cleanupMessages) cleanupMessages();
+      cleanupMessages = listenMessages(chatId, (messages) => {
+        renderMessages(messages)
+      })
+    }
+
+    function formatTime(timestamp) {
+      if (!timestamp) return ''
+      const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    }
+
+    function renderMessages(messages) {
+      const container = document.getElementById('messages')
+
+      if (messages.length === 0) {
+        container.innerHTML = `<div class="flex flex-col items-center justify-center py-16 gap-2">
+          <p class="text-sm text-gray-400">No messages yet</p>
+          <p class="text-xs text-gray-300">Say hello 👋</p>
+        </div>`
+        return
+      }
+
+      container.innerHTML = messages.map((msg, i) => {
+        const isMine = msg.senderId === currentUser.uid
+        const time = formatTime(msg.createdAt)
+
+        // date separator
+        let separator = ''
+        if (i === 0) {
+          separator = `<div class="flex items-center gap-3 my-2">
+            <div class="flex-1 h-px bg-gray-100"></div>
+            <span class="text-xs text-gray-400">Today</span>
+            <div class="flex-1 h-px bg-gray-100"></div>
+          </div>`
+        }
+
+        if (isMine) {
+          return `${separator}
+            <div class="flex items-end justify-end gap-2">
+              <div class="max-w-[72%]">
+                <div class="bg-gray-900 rounded-2xl rounded-br-sm px-4 py-2.5">
+                  <p class="text-sm text-white">${escapeHtml(msg.text)}</p>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 text-right mr-1">${time} ✓</p>
+              </div>
+            </div>`
+        } else {
+          return `${separator}
+            <div class="flex items-end gap-2">
+              <div class="w-7 h-7 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
+                <span class="text-rose-500 text-xs font-medium">${otherName[0]?.toUpperCase()}</span>
+              </div>
+              <div class="max-w-[72%]">
+                <div class="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-2.5">
+                  <p class="text-sm text-gray-800">${escapeHtml(msg.text)}</p>
+                </div>
+                <p class="text-xs text-gray-400 mt-1 ml-1">${time}</p>
+              </div>
+            </div>`
+        }
+      }).join('')
+
+      const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 50
+      if (wasAtBottom) {
+        container.scrollTop = container.scrollHeight
+      }
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+    }
+
+    window.toggleSend = () => {
+      const input = document.getElementById('message-input')
+      const btn = document.getElementById('send-btn')
+      const hasText = input.value.trim().length > 0
+      btn.disabled = !hasText
+      btn.style.opacity = hasText ? '1' : '0.4'
+    }
+
+    window.handleKey = (e) => {
+      if (e.key === 'Enter') sendMsg()
+    }
+
+    window.sendMsg = async () => {
+      const input = document.getElementById('message-input')
+      const text = input.value.trim()
+      if (!text || !currentUser) return
+      input.value = ''
+      window.toggleSend()
+      try {
+        await sendMessage(chatId, currentUser.uid, text)
+      } catch (e) {
+        console.error('sendMsg error:', e)
+        input.value = text
+        window.toggleSend()
+      }
+    }
+  </script>
+
+</body>
+</html>
