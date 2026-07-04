@@ -163,7 +163,7 @@
 
       // اگه قبلاً لاگین بود، مستقیم بره chats
       onAuthChange((user) => {
-        if (user) window.location.href = "/pages/chats.html";
+        if (user) window.location.href = "pages/chats.html";
       });
 
       function showError(msg) {
@@ -194,7 +194,7 @@
         setLoading("signin-btn", true);
         try {
           await signIn(email, password);
-          window.location.href = "/pages/chats.html";
+          window.location.href = "pages/chats.html";
         } catch (err) {
           setLoading("signin-btn", false);
           if (err.code === "auth/invalid-credential")
@@ -214,7 +214,7 @@
         setLoading("signup-btn", true);
         try {
           await signUp(name, email, password);
-          window.location.href = "/pages/chats.html";
+          window.location.href = "pages/chats.html";
         } catch (err) {
           setLoading("signup-btn", false);
           if (err.code === "auth/email-already-in-use")
