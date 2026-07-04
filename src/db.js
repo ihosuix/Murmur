@@ -58,13 +58,14 @@ export async function getOrCreateChat(userId1, userId2) {
 export async function saveUserProfile(userId, name, email) {
   await setDoc(doc(db, 'users', userId), {
     name,
-    email,
+    email: (email || '').trim().toLowerCase(),
     createdAt: serverTimestamp()
   }, { merge: true })
 }
 
 export async function findUserByEmail(email) {
-  const q = query(collection(db, 'users'), where('email', '==', email))
+  const normalized = email.trim().toLowerCase()
+  const q = query(collection(db, 'users'), where('email', '==', normalized))
   const snap = await getDocs(q)
   if (snap.empty) return null
   return { id: snap.docs[0].id, ...snap.docs[0].data() }
